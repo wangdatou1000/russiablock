@@ -6,43 +6,47 @@ package games.russiablock;
 
 import java.util.ArrayList;
 
-/**该类主要负责为电脑提供最佳决策�??
- *具体思路为：从最后一行开始扫描，每次扫描�?行�?�假设该行为m行，找到m行所有空的格子，
- *每个空格子是�?个endblocks类， 如果有连续的几个空格，则视其为一个endblocks类�??
- * 第一步：扫描�?行，在所有空格中找出找出�?优的格子x�?
- * 第二步：如果x是虚的，则向上扫描一行并接着找出�?优的y，直到找到实的格子为止�??
- * 第三步：如果没有找到实的格子，则�?优的虚格子就是结果�??
- * �?优原则为：优先级分层，最坏为没有格子�?1000分），有格子但是是虚的（每个虚格�?1000分）
- * 格子的不同状态（100分），格式的在边界还是不在边界（10分）。不同层有不同的权重�?
- * 分数就代表了权重�?
+/**
+ * 该类主要负责为电脑提供最佳决策�?? 具体思路为：从最后一行开始扫描，每次扫描�?行�?�假设该行为m行，找到m行所有空的格子，
+ * 每个空格子是�?个endblocks类， 如果有连续的几个空格，则视其为一个endblocks类�??
+ * 第一步：扫描�?行，在所有空格中找出找出�?优的格子x�? 第二步：如果x是虚的，则向上扫描一行并接着找出�?优的y，直到找到实的格子为止�??
+ * 第三步：如果没有找到实的格子，则�?优的虚格子就是结果�??
+ * �?优原则为：优先级分层，最坏为没有格子�?1000分），有格子但是是虚的（每个虚格�?1000分）
+ * 格子的不同状态（100分），格式的在边界还是不在边界（10分）。不同层有不同的权重�? 分数就代表了权重�?
+ * 
  * @author Administrator
  */
-public class elsai {
+public class ElsAI {
 
-    private autogame autogame;
-    private gamedisplay gm,  gmnext;
+	private AutoGame autogame;
+	private GameModel gm, gmnext;
     private int lsu,  hsu;
-    private ArrayList<endblocks> edblkarray;
-    private blocks blk;
+	private ArrayList<Endblocks> edblkarray;
+	private Blocks blk;
+	private Router r = new Router();
 
-    public elsai(autogame autogame) {
+	public ElsAI(AutoGame autogame) {
         this.autogame = autogame;
         this.gm = autogame.gm;
         this.blk = autogame.getblk();
-        lsu = gm.getlsu();
-        hsu = gm.gethsu();
+		lsu = gm.getColumnNum();
+		hsu = gm.getRowNum();
     }
 
-    public ArrayList<endblocks> scan_get_emptyblocks(int hsu) {
-        ArrayList<endblocks> edblkarray = new ArrayList<endblocks>();
+	public void setBlocks(Blocks blk) {
+		this.blk = blk;
+	}
+
+	public ArrayList<Endblocks> scan_get_emptyblocks(int hsu) {
+		ArrayList<Endblocks> edblkarray = new ArrayList<Endblocks>();
         int count = 0;
         for (int n = hsu; n > 0; n--) {
             boolean begin = false;
-            endblocks ed = null;
+			Endblocks ed = null;
             for (int m = n * lsu - 1; m >= (n - 1) * lsu; m--) {
-                if (gm.gmmodel.gmarray[m] == gm.gmmodel.blockbackcolor) {
+				if (gm.gmarray[m] == gm.BACKCOLOR) {
                     if (!begin) {
-                        ed = new endblocks(m, lsu, n);
+						ed = new Endblocks(m, lsu, n);
                         begin = true;
                     } else {
                         ed.emptylength += 1;
@@ -68,9 +72,9 @@ public class elsai {
         return edblkarray;
     }
 
-    public endblocks get_bestblocks() {
-        endblocks edblk, okblk = new endblocks();
-        ArrayList<endblocks> ed;
+	public Endblocks get_bestblocks() {
+		Endblocks edblk, okblk = new Endblocks();
+		ArrayList<Endblocks> ed;
         int scannumber = 0;
         for (int h = hsu; h >= 2; h--) {
             ed = scan_get_emptyblocks(h);
@@ -93,9 +97,8 @@ public class elsai {
         return okblk;
     }
 
-    public router getrouter() {
-        router r = new router();
-        endblocks okblk = get_bestblocks();
+	public Router getRouter() {
+		Endblocks okblk = get_bestblocks();
         if (okblk != null) {
             r.state = okblk.blk.state;
             r.x = (okblk.blk.b1 - blk.b1) % lsu;
@@ -109,25 +112,21 @@ public class elsai {
     public boolean usable(int b, int l) {
         for (int n = b; n >= lsu; n -= lsu) {
             if (l == 1) {
-                if (gm.gmmodel.gmarray[n] == gm.gmmodel.blockendcolor) {
+				if (gm.gmarray[n] == gm.ENDCOLOR) {
                     return false;
                 }
             } else if (l == 2) {
-                if (gm.gmmodel.gmarray[n] == gm.gmmodel.blockendcolor ||
-                        gm.gmmodel.gmarray[n - 1] == gm.gmmodel.blockendcolor) {
+				if (gm.gmarray[n] == gm.ENDCOLOR || gm.gmarray[n - 1] == gm.ENDCOLOR) {
                     return false;
                 }
             } else if (l == 3) {
-                if (gm.gmmodel.gmarray[n] == gm.gmmodel.blockendcolor ||
-                        gm.gmmodel.gmarray[n - 1] == gm.gmmodel.blockendcolor ||
-                        gm.gmmodel.gmarray[n - 2] == gm.gmmodel.blockendcolor) {
+				if (gm.gmarray[n] == gm.ENDCOLOR || gm.gmarray[n - 1] == gm.ENDCOLOR
+						|| gm.gmarray[n - 2] == gm.ENDCOLOR) {
                     return false;
                 }
             } else if (l == 4) {
-                if (gm.gmmodel.gmarray[n] == gm.gmmodel.blockendcolor ||
-                        gm.gmmodel.gmarray[n - 1] == gm.gmmodel.blockendcolor ||
-                        gm.gmmodel.gmarray[n - 2] == gm.gmmodel.blockendcolor ||
-                        gm.gmmodel.gmarray[n - 3] == gm.gmmodel.blockendcolor) {
+				if (gm.gmarray[n] == gm.ENDCOLOR || gm.gmarray[n - 1] == gm.ENDCOLOR || gm.gmarray[n - 2] == gm.ENDCOLOR
+						|| gm.gmarray[n - 3] == gm.ENDCOLOR) {
                     return false;
                 }
             }
@@ -140,7 +139,7 @@ public class elsai {
         int number = 0;
         for (int n = 0; n < l; n++) {
             for (int p = point + lsu - n; p <= endp - n; p += lsu) {
-                if (gm.gmmodel.gmarray[p] == gm.gmmodel.blockbackcolor) {
+				if (gm.gmarray[p] == gm.BACKCOLOR) {
                     number += 1;
                 } else {
                     break;
@@ -150,7 +149,7 @@ public class elsai {
         return number;
     }
 
-    public endblocks get_okblocks(endblocks edblk) {
+	public Endblocks get_okblocks(Endblocks edblk) {
         switch (blk.kinds) {
             case 1:
                 return getblocks_kinds_one(edblk);
@@ -170,7 +169,7 @@ public class elsai {
         return edblk;
     }
 
-    public endblocks getblocks_kinds_one(endblocks edblk) {
+	public Endblocks getblocks_kinds_one(Endblocks edblk) {
         int p = edblk.beginpiont;
         int t = edblk.emptylength - 2;
         int grade = 0;
@@ -201,7 +200,7 @@ public class elsai {
         return edblk;
     }
 
-    public endblocks getblocks_kinds_two(endblocks edblk) {
+	public Endblocks getblocks_kinds_two(Endblocks edblk) {
         int p = edblk.beginpiont;
         int t = edblk.emptylength - 1;
         int t2 = edblk.emptylength - 4;
@@ -230,7 +229,7 @@ public class elsai {
         return edblk;
     }
 
-    public endblocks getblocks_kinds_three(endblocks edblk) {
+	public Endblocks getblocks_kinds_three(Endblocks edblk) {
         int p = edblk.beginpiont;
         int t = edblk.emptylength - 3;
         int p2 = edblk.beginpiont - edblk.emptylength + 1;
@@ -283,7 +282,7 @@ public class elsai {
             return edblk;
         }
         for (int n = 0; n <= 0; n++) {
-            if ((p2 % lsu > 1) && (gm.gmmodel.gmarray[p2 - 2] == gm.gmmodel.blockendcolor)) {
+			if ((p2 % lsu > 1) && (gm.gmarray[p2 - 2] == gm.ENDCOLOR)) {
                 if (usable(p2 - lsu, 3)) {
                     grade = getemptyblocks(p2 - n, 1) * edblk.emptyparameter +
                             edblk.emptylength + edblk.borderparameter +
@@ -304,8 +303,7 @@ public class elsai {
         }
         for (int n = 0; n <= 0; n++) {
             if ((p % lsu < lsu - 1) &&
-                    (gm.gmmodel.gmarray[p - lsu + 1] == gm.gmmodel.blockendcolor) &&
-                    (!(gm.gmmodel.gmarray[p - lsu] == gm.gmmodel.blockendcolor))) {
+					(gm.gmarray[p - lsu + 1] == gm.ENDCOLOR) && (!(gm.gmarray[p - lsu] == gm.ENDCOLOR))) {
                 if (usable(p - lsu * 2 + 1, 2)) {
                     grade = getemptyblocks(p - n, 1) * edblk.emptyparameter +
                             edblk.emptylength + edblk.borderparameter +
@@ -326,7 +324,7 @@ public class elsai {
         return edblk;
     }
 
-    public endblocks getblocks_kinds_four(endblocks edblk) {
+	public Endblocks getblocks_kinds_four(Endblocks edblk) {
         int p = edblk.beginpiont;
         int t = edblk.emptylength - 3;
         int p2 = edblk.beginpiont - edblk.emptylength + 1;
@@ -382,7 +380,7 @@ public class elsai {
         for (int n = 0; n <= 0; n++) {
             if (p % lsu < lsu - 2) {
                 if ((usable(p - lsu + 2, 3)) &&
-                        (gm.gmmodel.gmarray[p + 2] == gm.gmmodel.blockendcolor)) {
+						(gm.gmarray[p + 2] == gm.ENDCOLOR)) {
                     grade = getemptyblocks(p - n, 1) * edblk.emptyparameter +
                             edblk.emptylength + edblk.borderparameter +
                             edblk.stateparameter * 3;
@@ -401,10 +399,7 @@ public class elsai {
             return edblk;
         }
         for (int n = 0; n <= 0; n++) {
-            if ((p2 % lsu > 0) && gm.gmmodel.gmarray[p2 - lsu - 1] ==
-                    gm.gmmodel.blockendcolor &&
-                    !(gm.gmmodel.gmarray[p2 - lsu] ==
-                    gm.gmmodel.blockendcolor)) {
+			if ((p2 % lsu > 0) && gm.gmarray[p2 - lsu - 1] == gm.ENDCOLOR && !(gm.gmarray[p2 - lsu] == gm.ENDCOLOR)) {
                 if (usable(p2 - lsu * 2, 2)) {
                     grade = getemptyblocks(p2 - n, 1) * edblk.emptyparameter +
                             edblk.emptylength + edblk.borderparameter +
@@ -424,7 +419,7 @@ public class elsai {
         return edblk;
     }
 
-    public endblocks getblocks_kinds_five(endblocks edblk) {
+	public Endblocks getblocks_kinds_five(Endblocks edblk) {
         int p = edblk.beginpiont;
         int t = edblk.emptylength - 3;
         int p2 = edblk.beginpiont - edblk.emptylength + 1;
@@ -510,7 +505,7 @@ public class elsai {
         return edblk;
     }
 
-    public endblocks getblocks_kinds_six(endblocks edblk) {
+	public Endblocks getblocks_kinds_six(Endblocks edblk) {
         int p = edblk.beginpiont;
         int t = edblk.emptylength - 2;
         int p2 = edblk.beginpiont - edblk.emptylength + 1;
@@ -556,7 +551,7 @@ public class elsai {
         return edblk;
     }
 
-    public endblocks getblocks_kinds_seven(endblocks edblk) {
+	public Endblocks getblocks_kinds_seven(Endblocks edblk) {
         int p = edblk.beginpiont;
         int t = edblk.emptylength - 2;
         int p2 = edblk.beginpiont - edblk.emptylength + 1;

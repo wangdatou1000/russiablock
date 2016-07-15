@@ -13,7 +13,7 @@ import java.util.Arrays;
  *
  * @author Administrator
  */
-public class blocks {
+public class Blocks {
 
     public volatile int b1, b2, b3, b4;
     public volatile int w1, w2, w3, w4;
@@ -23,10 +23,10 @@ public class blocks {
     public int lsu;
     private final double a = Math.PI / 2;
 
-    public blocks() {
+	public Blocks() {
     }
 
-    public blocks(int lsu, int kinds) {
+	public Blocks(int lsu, int kinds) {
         this.lsu = lsu;
         this.b1 = lsu / 2;
         this.state = 1;
@@ -34,7 +34,7 @@ public class blocks {
         createblocks();
     }
 
-    public blocks(int lsu, int kinds, int state) {
+	public Blocks(int lsu, int kinds, int state) {
         this.lsu = lsu;
         this.b1 = lsu / 2;
         this.kinds = kinds;
@@ -71,7 +71,7 @@ public class blocks {
         }
     }
 
-    public synchronized void circumvolve() {
+	public void circumvolve() {
         b1 = w1;
         b2 = w2;
         b3 = w3;
@@ -79,14 +79,14 @@ public class blocks {
         state = statetest;
     }
 
-    public synchronized void go() {
+	public void go() {
         b1 = w1;
         b2 = w2;
         b3 = w3;
         b4 = w4;
     }
 
-    public synchronized void gotest(int p) {
+	public void gotest(int p) {
         w1 = b1 + p;
         w2 = b2 + p;
         w3 = b3 + p;
@@ -94,7 +94,7 @@ public class blocks {
     }
 //    顺时针进行旋�?
 
-    public synchronized void circumvolvetest() {
+	public void circumvolvetest() {
         int x, y;
         if (state == 4) {
             statetest = 1;

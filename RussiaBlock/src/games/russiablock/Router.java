@@ -9,7 +9,7 @@ package games.russiablock;
  *
  * @author Administrator
  */
-public class router {
+public class Router {
 public int x;
 public int y;
 public int state;

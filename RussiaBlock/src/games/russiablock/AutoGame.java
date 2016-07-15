@@ -2,17 +2,34 @@ package games.russiablock;
 
 import javax.swing.JOptionPane;
 
-public class autogame {
+public class AutoGame {
 
-    public gamedisplay gm,  gmnext;
-    private blocks blk,  blknext;
+    public GameModel gm, gmnext;
+    private volatile Blocks blk, blknext;
     private int fensu;
     public int sleeptime;
     public boolean next = false;
     private boolean iscomputer = true;
-    public xiatimer xia = new xiatimer();
+    private Runnable logic = () -> {
+        if (go(gm.getColumnNum())) {
+        } else {
+            processOneEnd();
+        }
+        try {
+            Thread.sleep(sleeptime);
+        } catch (Exception e) {
+        }
+    };
+    public MyThreadV2 xia = new MyThreadV2(logic);
 
-    public autogame(gamedisplay gm, boolean iscomputer, gamedisplay gmnext) {
+    private synchronized void processOneEnd() {
+        gm.change(blk, gm.ENDCOLOR, 0, false);
+        getscore();
+        overtest();
+        createnewblocks();
+        next = true;
+    }
+    public AutoGame(GameModel gm, boolean iscomputer, GameModel gmnext) {
         this.gm = gm;
         this.gmnext = gmnext;
         this.iscomputer = iscomputer;
@@ -22,44 +39,47 @@ public class autogame {
         if (iscomputer) {
             int blkkinds = (int) (1 + Math.random() * 7);
             int blkstate = (int) (1 + Math.random() * 4);
-            blk = new blocks(gm.getlsu(), blkkinds, blkstate);
-            gm.gmmodel.change(blk, gm.gmmodel.blockmovingcolor, 0, false);
-            gm.gamedisplay(blk, gm.getblockmovingcolor(),null,false);
+            blk = new Blocks(gm.getColumnNum(), blkkinds, blkstate);
+            gm.change(blk, gm.MOVINGCOLOR, 0, false);
         } else {
             int nextblkkinds, blkkinds, nextblkstate, blkstate;
             if (blknext != null) {
                 blk.kinds = blknext.kinds;
                 blk.state = blknext.state;
-                gmnext.gamedisplay(blknext, gmnext.getblockbackcolor(),null,false);
                 blknext.kinds = (int) (1 + Math.random() * 7);
                 blknext.state = (int) (1 + Math.random() * 4);
-                blk = new blocks(gm.getlsu(), blk.kinds, blk.state);
-                blknext = new blocks(gmnext.getlsu(), blknext.kinds, blknext.state);
+                blk = new Blocks(gm.getColumnNum(), blk.kinds, blk.state);
+                blknext = new Blocks(gmnext.getColumnNum(), blknext.kinds, blknext.state);
             } else {
                 blkkinds = (int) (1 + Math.random() * 7);
                 nextblkkinds = (int) (1 + Math.random() * 7);
                 blkstate = (int) (1 + Math.random() * 4);
                 nextblkstate = (int) (1 + Math.random() * 4);
-                blk = new blocks(gm.getlsu(), blkkinds, blkstate);
-                blknext = new blocks(gmnext.getlsu(), nextblkkinds, nextblkstate);
+                blk = new Blocks(gm.getColumnNum(), blkkinds, blkstate);
+                blknext = new Blocks(gmnext.getColumnNum(), nextblkkinds, nextblkstate);
             }
-            gm.gmmodel.change(blk, gm.gmmodel.blockmovingcolor, 0, false);
-            gm.gamedisplay(blk, gm.getblockmovingcolor(),null,false);
-            gmnext.gamedisplay(blknext, gmnext.getblockmovingcolor(),null,false);
-
+            gm.change(blk, gm.MOVINGCOLOR, gm.BACKCOLOR, false);
+            gmnext.cleanupgamepanel();
+            gmnext.change(blknext, gmnext.MOVINGCOLOR, gmnext.BACKCOLOR, false);
         }
     }
 
-    public void go(int p) {
-        if (gm.gmmodel.cango(p, blk)) {
-            gm.go(blk);
-        }
+    public synchronized boolean go(int p) {
+        if (gm.cango(p, blk)) {
+            gm.goOrCircumvolve(blk, 1);
+            return true;
+        } else
+            return false;
+
     }
-    public void circumvolve() {
-        gm.circumvolve(blk);
+
+    public synchronized void circumvolve() {
+        if (gm.cancircumvolve(blk)) {
+            gm.goOrCircumvolve(blk, 2);
+        }
     }
     public void getscore() {
-        int defen = gm.gmmodel.eliminateblocks();
+        int defen = gm.eliminateblocks();
         if (defen > 0) {
             if (defen == 1) {
                 fensu += 100;
@@ -70,14 +90,14 @@ public class autogame {
             } else if (defen == 4) {
                 fensu += 800;
             }
-            sleeptime -= defen * 2;
+            sleeptime -= defen * 1.3;
         }
     }//每一次方块到底后都要判断是否可以削了.
 
     public void overtest() {
-        if (gm.gmmodel.isgameover()) {
+        if (gm.isgameover()) {
             int again = JOptionPane.showConfirmDialog(null,
-                    "GAME OVER!!\n你的分数�?:" +
+                    "GAME OVER!!\n你的分数是:" +
                     fensu +
                     "\n要再来一次吗?", "提示---datou!!",
                     JOptionPane.YES_NO_OPTION);
@@ -95,32 +115,8 @@ public class autogame {
         return fensu;
     }
 
-    public blocks getblk() {
+    public Blocks getblk() {
         return blk;
     }
 
-    class xiatimer extends MyThreadV2 {
-
-        public xiatimer() {
-        }
-
-		@Override
-		protected void runPersonelLogic() {
-			if (gm.gmmodel.cango(gm.getlsu(), blk)) {
-                gm.go(blk);
-            } else {
-                gm.endblocks(blk);
-                getscore();
-                gm.displayall();
-                overtest();
-                createnewblocks();
-                next = true;
-            }
-            try {
-                sleep(sleeptime);
-            } catch (Exception e) {
-            }
-			
-		}
-    }
 }

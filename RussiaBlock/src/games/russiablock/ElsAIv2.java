@@ -5,333 +5,341 @@
 package games.russiablock;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Supplier;
 
 /**
  *
  * @author Administrator
  */
-public class elsaiv2 {
+public class ElsAIv2 {
 
-    private autogame autogame;
-    private gamedisplay gm, gmnext;
-    private int lsu, hsu;
-    private blocks blk, blk2, orblk;
-    private int endpoint;
+	private GameModel gm, gmnext;
+	private final int COLUMNS, ROWS, ALLBLOCKS;
+	private Blocks blk, blk2, orblk;
+	private int endpoint;
+	private Router r = new Router();
 
-    public elsaiv2(autogame autogame) {
-        this.autogame = autogame;
-        this.gm = autogame.gm;
-        orblk = clone(autogame.getblk());
-        // orblk.createblocks();
-        lsu = gm.getlsu();
-        hsu = gm.gethsu();
-        endpoint = getendpoint();
-    }
+	public ElsAIv2(GameModel gmModel, Blocks blk) {
+		this.gm = gmModel;
+		System.out.println(gm.gmarray.length);
+		// orblk.createblocks();
+		COLUMNS = gm.getColumnNum();
+		ROWS = gm.getRowNum();
+		ALLBLOCKS = COLUMNS * ROWS;
+		endpoint = getEndPoint();
+	}
 
-    public int getendpoint() {
-        boolean isend = true;
-        int endpoint = lsu * hsu;
-        for (int n = hsu; n > 0; n--) {
-            for (int m = lsu * n - 1; m >= lsu * (n - 1); m--) {
-                if (gm.gmmodel.gmarray[m] == gm.gmmodel.blockendcolor) {
-                    endpoint = m;
-                    isend = false;
-                }
-            }
-            if (isend) {
-                break;
-            } else {
-                isend = true;
-            }
+	public int getEndPoint() {
+		boolean isend = true;
+		int endpoint = ALLBLOCKS;
+		for (int n = ROWS; n > 0; n--) {
+			for (int m = COLUMNS * n - 1; m >= COLUMNS * (n - 1); m--) {
+				if (gm.gmarray[m] == gm.ENDCOLOR) {
+					endpoint = m;
+					isend = false;
+				}
+			}
+			if (isend) {
+				break;
+			} else {
+				isend = true;
+			}
 
-        }
-        return endpoint;
-    }
+		}
+		return endpoint;
+	}
 
-    public void setblk(blocks blk) {
-        int endpoint = blk.getblkendpoint();
-        int end = lsu * hsu - 1;
-        int p = end - endpoint;
-        blk.gotest(p);
-        blk.go();
-    }
+	public void setBlk(Blocks blk, int end) {
+		int endpoint = blk.getblkendpoint();
+		int p = end - endpoint;
+		blk.gotest(p);
+		blk.go();
+	}
 
-    public boolean isfilled(blocks blk) {
-    	if(blk.b1<0||blk.b2<0||blk.b3<0||blk.b4<0)return true;
-        if (gm.gmmodel.gmarray[blk.b1] == gm.gmmodel.blockendcolor) {
-            return true;
-        }
-        if (gm.gmmodel.gmarray[blk.b2] == gm.gmmodel.blockendcolor) {
-            return true;
-        }
-        if (gm.gmmodel.gmarray[blk.b3] == gm.gmmodel.blockendcolor) {
-            return true;
-        }
-        if (gm.gmmodel.gmarray[blk.b4] == gm.gmmodel.blockendcolor) {
-            return true;
-        }
-        return false;
-    }
+	public boolean isFilled(Blocks blk) {
+		if (blk.b1 < 0 || blk.b2 < 0 || blk.b3 < 0 || blk.b4 < 0)
+			return true;
+		if (gm.gmarray[blk.b1] == gm.ENDCOLOR) {
+			return true;
+		}
+		if (gm.gmarray[blk.b2] == gm.ENDCOLOR) {
+			return true;
+		}
+		if (gm.gmarray[blk.b3] == gm.ENDCOLOR) {
+			return true;
+		}
+		if (gm.gmarray[blk.b4] == gm.ENDCOLOR) {
+			return true;
+		}
+		return false;
+	}
 
-    public boolean isenable(blocks blk) {
-        blocks checkblk = clone(blk);
-        int end = blk.getblkendpoint();
-        boolean isenable = true;
-        while (end > endpoint - 4) {
-            if (gm.gmmodel.cango(-lsu, checkblk)) {
-                checkblk.go();
-                end -= lsu;
-            } else {
-                return false;
-            }
-        }
-        return isenable;
-    }
+	public boolean isEnable(Blocks blk) {
+		Blocks checkblk = clone(blk);
+		int end = blk.getblkbeginpoint();
+		if (end <= 0)
+			return false;
+		boolean isenable = true;
+		while (end > COLUMNS) {
+			if (gm.cango(-COLUMNS, checkblk)) {
+				checkblk.go();
+				end -= COLUMNS;
+			} else {
+				return false;
+			}
+		}
+		return isenable;
+	}
 
-    public boolean isgood(int t) {
-        for (int n = t; n >= 0; n -= lsu) {
-            if (gm.gmmodel.gmarray[n] == gm.gmmodel.blockendcolor) {
-                return false;
-            }
-        }
-        return true;
-    }
+	public boolean isDead(int t, Map<Integer, Integer> deadQiMap, Set<Integer> deadQiSet, Blocks bk) {
+		if (deadQiSet.contains(t))
+			return false;
+		List<Integer> tempList = new ArrayList<>();
+		tempList.add(t);
+		for (int n = t - COLUMNS; n >= 0; n -= COLUMNS) {
+			if (gm.gmarray[n] == gm.ENDCOLOR || n == bk.b1 || n == bk.b2 || n == bk.b3 || n == bk.b4) {
+				deadQiMap.put(t, tempList.size());
+				deadQiSet.addAll(tempList);
+				return false;
+			} else {
+				tempList.add(n);
+			}
+		}
+		return true;
+	}
 
-    public endblocks getoneokblock(blocks blk) {
-        blocks b = clone(blk);
-        endblocks okblk = new endblocks(b);
-        ArrayList<Integer> a = new ArrayList<Integer>();
-        int qi = 0;
-        qi += getoneqi(blk.b1, b, a);
-        qi += getoneqi(blk.b2, b, a);
-        qi += getoneqi(blk.b3, b, a);
-        qi += getoneqi(blk.b4, b, a);
-        okblk.qi = qi;
-        a = null;
-        return okblk;
-    }
+	public Endblocks getOneOkBlock(Blocks blk) {
+		Blocks bk = clone(blk);
+		Endblocks okblk = new Endblocks(bk);
+		int n = ALLBLOCKS - 1, a = 0, b = 0, c = 0;
+		int isEndBlock = -1;
+		Set<Integer> deadQiSet = new HashSet<>();
 
-    public int getunableqi(blocks blk, int one, ArrayList<Integer> a) {
-        int qi = 0;
-        if (one - 1 == blk.b2 || one - 1 == blk.b3 || one - 1 == blk.b4 || one -
-                1 == blk.b1) {
-            qi--;
-        }
-        if (one + 1 == blk.b2 || one + 1 == blk.b3 || one + 1 == blk.b4 || one +
-                1 == blk.b1) {
-            qi--;
-        }
-        if (one + lsu == blk.b2 || one + lsu == blk.b3 || one + lsu ==
-                blk.b4 || one + lsu == blk.b1) {
-            qi--;
-        }
-        if (one - lsu == blk.b3 || one - lsu == blk.b4 || one - lsu ==
-                blk.b2 || one - lsu == blk.b1) {
-            qi--;
-        }
+		while (n >= 0) {
+			if (gm.gmarray[n] == gm.ENDCOLOR || n == bk.b1 || n == bk.b2 || n == bk.b3 || n == bk.b4) {
+				if (isEndBlock == -1 || isEndBlock != 1) {
+					a++;
+					isEndBlock = 1;
+				}
+				b++;
+			} else if (gm.gmarray[n] == gm.BACKCOLOR) {
+				if (isEndBlock == -1 || isEndBlock != 0) {
+					a++;
+					isEndBlock = 0;
+				}
+				isDead(n, okblk.getDeadQiMap(), deadQiSet, bk);
+				c++;
+			}
+			if (n % COLUMNS == 0) {
 
-        return qi;
-    }
+				if (c == COLUMNS) {
+					break;
+				}
+				if (b == COLUMNS) {
+					okblk.setC(okblk.getC() + 1);
+				}
+				okblk.getA().add(a);
+				okblk.getB().add(b);
+				a = 0;
+				b = 0;
+				c = 0;
+				isEndBlock = -1;
+			}
+			n--;
+		}
+		return okblk;
+	}
 
-    public int getoneqi(int one, blocks blk, ArrayList<Integer> a) {
+	public void setBlocks(Blocks blk) {
+		// this.blk = blk;
+		orblk = clone(blk);
+		endpoint = getEndPoint();
+	}
 
-        int qi = 0;
-        if (one % lsu != 0 && gm.gmmodel.gmarray[one - 1] !=
-                gm.gmmodel.blockendcolor &&
-                !a.contains(one - 1)) {
-            if (one - 1 != blk.b2 && one - 1 != blk.b3 && one - 1 != blk.b4 && one -
-                    1 != blk.b1) {
-                a.add(one - 1);
-                qi++;
-                if (!isgood(one - 1)) {
-                    qi++;
-                }
-            }
+	public Endblocks compareBlocks(Endblocks e1, Endblocks e2) {
+		if (e1 == null && e2 == null) {
+			return null;
+		}
+		if (e1 == null && e2 != null) {
+			return e2;
+		}
+		if (e2 == null && e1 != null) {
+			return e1;
+		}
+		int c1 = e1.getC();
+		int c2 = e2.getC();
+		int qi1 = e1.getDeadQi(), qi2 = e2.getDeadQi();
+		Supplier<Endblocks> cf = () -> {
+			if (c1 > c2) {
+				return e1;
+			} else if (c1 < c2) {
+				return e2;
+			}
+			return null;
+		};
+		int aSize1 = e1.getA().size(), aSize2 = e2.getA().size();
+		Supplier<Endblocks> qif = () -> {
+			if (qi1 > qi2) {
+				return e2;
+			} else if (qi1 < qi2) {
+				return e1;
+			}
+			return null;
+		};
+		Supplier<Endblocks> aSizef = () -> {
+			if (aSize1 > aSize2) {
+				return e2;
+			} else if (aSize1 < aSize2) {
+				return e1;
+			}
+			return null;
+		};
+		if (endpoint / COLUMNS > 13) {
+			Endblocks tempE = qif.get();
+			tempE = tempE == null ? cf.get() : tempE;
+			tempE = tempE == null ? aSizef.get() : tempE;
+			if (tempE != null)
+				return tempE;
+		} else {
+			Endblocks tempE = cf.get();
+			tempE = tempE == null ? aSizef.get() : tempE;
+			tempE = tempE == null ? qif.get() : tempE;
+			if (tempE != null)
+				return tempE;
+		}
 
-        } else if (one % lsu != 0 && gm.gmmodel.gmarray[one - 1] ==
-                gm.gmmodel.blockendcolor &&
-                !a.contains(one - 1)) {
-            a.add(one - 1);
-            qi--;
-        }
-        if (one % lsu != lsu - 1 && gm.gmmodel.gmarray[one + 1] !=
-                gm.gmmodel.blockendcolor &&
-                !a.contains(one + 1)) {
-            if (one + 1 != blk.b2 && one + 1 != blk.b3 && one + 1 != blk.b4 && one +
-                    1 != blk.b1) {
-                a.add(one + 1);
-                qi++;
-                if (!isgood(one + 1)) {
-                    qi++;
-                }
-            }
+		if (e1.getAllA() > e2.getAllA()) {
+			return e2;
+		} else if (e1.getAllA() < e2.getAllA()) {
+			return e1;
+		}
+		for (int n = 0, m = e2.getB().size(); n < m; n++) {
+			if (e1.getB().get(n) > e2.getB().get(n))
+				return e1;
+			else if (e1.getB().get(n) < e2.getB().get(n))
+				return e2;
+		}
 
-        } else if (one % lsu != lsu - 1 && one + 1 < lsu * hsu && gm.gmmodel.gmarray[one + 1] ==
-                gm.gmmodel.blockendcolor &&
-                !a.contains(one + 1)) {
-            a.add(one + 1);
-            qi--;
-        }
-        if (one - lsu > 0 && gm.gmmodel.gmarray[one - lsu] !=
-                gm.gmmodel.blockendcolor &&
-                !a.contains(one - lsu)) {
-            if (one - lsu != blk.b3 && one - lsu != blk.b4 && one - lsu !=
-                    blk.b2 && one - lsu != blk.b1) {
-                a.add(one - lsu);
-                qi++;
-                if (!isgood(one - lsu)) {
-                    qi++;
-                }
-            }
+		if (e1.blk.state == e2.blk.state) {
+			if (e1.blk.getblkbeginpoint() > e2.blk.getblkbeginpoint()) {
+				return e1;
+			} else {
+				return e2;
+			}
+		} else {
+			int a = e1.blk.getblkbeginpoint() / COLUMNS;
+			int b = e2.blk.getblkbeginpoint() / COLUMNS;
 
-        } else if (one - lsu > 0 && gm.gmmodel.gmarray[one - lsu] ==
-                gm.gmmodel.blockendcolor &&
-                !a.contains(one - lsu)) {
-            a.add(one - lsu);
-            qi--;
-        }
-        if (one + lsu < lsu * hsu - 1 && gm.gmmodel.gmarray[one + lsu] !=
-                gm.gmmodel.blockendcolor &&
-                !a.contains(one + lsu)) {
-            if (one + lsu != blk.b2 && one + lsu != blk.b3 && one + lsu !=
-                    blk.b4 && one + lsu != blk.b1) {
-                a.add(one + lsu);
-                qi++;
-                if (!isgood(one + lsu)) {
-                    qi++;
-                }
-            }
-        } else {
-            a.add(one + lsu);
-            qi--;
-        }
-        return qi;
-    }
+			if (a < b) {
+				System.out.println(a + "--" + b);
+				return e2;
+			} else {
+				return e1;
+			}
+		}
+	}
 
-    public endblocks compareblocks(endblocks e1, endblocks e2) {
-        if (e1 == null && e2 == null) {
-            return null;
-        }
-        if (e1 == null && e2 != null) {
-            return e2;
-        }
-        if (e2 == null && e1 != null) {
-            return e1;
-        }
-        if (e1.qi < e2.qi) {
-            return e1;
-        } else if (e1.qi > e2.qi) {
-            System.out.println(e2.blk.state + "--" + e2.blk.getblkendpoint() /
-                    lsu);
-            return e2;
-        }
-        if (e1.blk.state == e2.blk.state) {
-            if (e1.blk.getblkbeginpoint() > e2.blk.getblkbeginpoint()) {
-                return e1;
-            } else {
-                return e2;
-            }
-        } else {
-            int a = e1.blk.getblkbeginpoint() / lsu;
-            int b = e2.blk.getblkbeginpoint() / lsu;
+	public Blocks clone(Blocks blk) {
+		Blocks b = new Blocks();
+		b.b1 = blk.b1;
+		b.b2 = blk.b2;
+		b.b3 = blk.b3;
+		b.b4 = blk.b4;
+		b.state = blk.state;
+		b.kinds = blk.kinds;
+		b.lsu = blk.lsu;
+		return b;
+	}
 
-            if (a < b) {
-                System.out.println(a + "--" + b);
-                return e2;
-            } else {
-                return e1;
-            }
-        }
-    }
+	private int getBeginScanPoint() {
+		int beginScanPoint = ALLBLOCKS - 1;
+		boolean isGood = true;
+		for (int n = beginScanPoint; n > 0; n--) {
+			if (gm.gmarray[n] == gm.BACKCOLOR) {
+				for (int i = n - COLUMNS; i > 0; i -= COLUMNS) {
+					if (gm.gmarray[i] == gm.ENDCOLOR) {
+						isGood = false;
+						break;
+					}
+				}
+				if (isGood) {
+					return n;
+				}
+				isGood = true;
+			}
+		}
+		return beginScanPoint;
+	}
 
-    public blocks clone(blocks blk) {
-        blocks b = new blocks();
-        b.b1 = blk.b1;
-        b.b2 = blk.b2;
-        b.b3 = blk.b3;
-        b.b4 = blk.b4;
-        b.state = blk.state;
-        b.kinds = blk.kinds;
-        b.lsu = blk.lsu;
-        return b;
-    }
+	public Endblocks getBestBlocks() {
+		Endblocks endblock = null;
+		Endblocks tempendblock = null;
+		Blocks blk = clone(orblk);
+		Blocks blk_state = clone(blk);
+		int state = blk.state;
+		int x = 0;
+		boolean isend = true;
+		while (isend) {
+			int end = getBeginScanPoint();
+			System.out.println("end:" + end + "\tendpoint:" + endpoint);
+			setBlk(blk, end);// 将blk移动到可以开始搜索点
+			System.out.println("kinds:" + blk.kinds + "\t" + blk.b1 + "=" + blk.b1 % COLUMNS + "-" + blk.b2 % COLUMNS
+					+ "--" + blk.b3 % COLUMNS + "--" + blk.b4 % COLUMNS + "state:" + blk.state);
+			while (end > endpoint - COLUMNS - 1 && end > 0) {
+				/* 如果悬空则不计算，跳过 */
+				if (!gm.cango(COLUMNS, blk)) {
 
-    public endblocks getbestblock() {
-        endblocks endblock = null;
-        endblocks tempendblock = null;
-        blocks blk = clone(orblk);
-        blocks blk_state = clone(blk);
-        int state = blk.state;
-        int x = 0;
-        boolean isend = true;
-        while (isend) {
-            setblk(blk);
-            int end = lsu * hsu;
-            while (end > endpoint - lsu - 1) {
+					if (!isFilled(blk) && isEnable(blk)) {
 
-                if (!gm.gmmodel.cango(lsu, blk)) {
+						if (endblock == null) {
+							endblock = getOneOkBlock(blk);
+						} else {
+							tempendblock = getOneOkBlock(blk);
+							endblock = compareBlocks(endblock, tempendblock);
+							System.out.println("state:" + blk.state + "\ttemp:" + tempendblock.getC() + "\t"
+									+ tempendblock.getDeadQi() + "\t" + tempendblock.getA().size() + "\t"
+									+ tempendblock.getAllA() + "\tok--state:" + endblock.blk.state + "\t"
+									+ endblock.getC() + "\t" + endblock.getDeadQi() + "\t" + endblock.getA().size()
+									+ "\t" + endblock.getAllA() + "\tendpoint:" + endpoint + "-" + end + "--"
+									+ endblock.blk.b1 + "===" + blk.b1 % COLUMNS + "-" + blk.b2 % COLUMNS + "--"
+									+ blk.b3 % COLUMNS + "--" + blk.b4 % COLUMNS);
+						}
+					}
+				}
 
-                    if (!isfilled(blk) && isenable(blk)) {
+				blk.gotest(-1);
+				blk.go();
+				end -= 1;
 
-                        if (endblock == null) {
-                            endblock = getoneokblock(blk);
-                            System.out.println(blk.state + "\ttemp:" + "\tok:" +
-                                    endblock.qi +
-                                    "---" + blk.getblkendpoint() % lsu +
-                                    "\tendpoint:" + endpoint);
-                        } else {
-                            tempendblock = getoneokblock(blk);
-                            endblock = compareblocks(endblock, tempendblock);
-                            System.out.println(blk.state + "\ttemp:" +
-                                    tempendblock.qi + "\tok:" + endblock.qi +
-                                    "---" + blk.getblkendpoint() % lsu +
-                                    "\tendpoint:" + endpoint + "===" + blk.b1 %
-                                    lsu + "-" + blk.b2 % lsu + "--" + blk.b3 %
-                                    lsu + "--" + blk.b4 % lsu);
-                        }
-                    }
+			}
+			blk_state.circumvolvetest();
+			blk_state.circumvolve();
+			blk = clone(blk_state);
+			tempendblock = null;
+			if (blk.state == state) {
+				isend = false;
+			}
+		}
+		return endblock;
+	}
 
-                }
-                if (gm.gmmodel.cango(-1, blk)) {
-                    blk.go();
-                    end -= 1;
-                } else if (gm.gmmodel.is_overborderline(blk)) {
-                    blk.gotest(-blk.getwidth());
-                    blk.go();
-                    end -= blk.getwidth();
+	public Router getRouter() {
+		Endblocks okblk = getBestBlocks();
+		if (okblk != null) {
+			r.state = okblk.blk.state;
+			r.x = okblk.blk.b1 % COLUMNS - orblk.b1 % COLUMNS;
 
-                } else {
-                    blk.gotest(-1);
-                    blk.go();
-                    end -= 1;
-                }
-
-            }
-            blk_state.circumvolvetest();
-            blk_state.circumvolve();
-            blk = clone(blk_state);
-            System.out.print(blk.b1 % lsu + "-" + blk.b2 % lsu + "--" + blk.b3 %
-                    lsu + "--" + blk.b4 % lsu + "state:" + blk.state);
-            tempendblock = null;
-            if (blk.state == state) {
-                isend = false;
-            }
-        }
-        return endblock;
-    }
-
-    public router getrouter() {
-        router r = new router();
-        endblocks okblk = getbestblock();
-        if (okblk != null) {
-            r.state = okblk.blk.state;
-            r.x = okblk.blk.b1 % lsu - orblk.b1 % lsu;
-//
-//            System.out.println(r.state + "\t" + r.x + "=====" + okblk.qi +
-//                    "=====" + okblk.blk.b1 + "=====" + orblk.b1 + "----" +
-//                    okblk.blk.b1 % lsu + "======" + orblk.b1 % lsu);
-        }
-
-        return r;
-    }
+			System.out.println("r.kinds:" + okblk.blk.kinds + "  r.state=" + r.state + "\t" + r.x + "\t" + okblk.blk.b1
+					+ "=====" + orblk.b1 + "\t" + okblk.blk.b1 % COLUMNS + "======" + orblk.b1 % COLUMNS);
+		} else {
+			System.out.println("okblk is null,blk.kinds=" + orblk.kinds + "," + orblk.b1 + "-" + orblk.b2 + "-"
+					+ orblk.b3 + "-" + orblk.b4);
+		}
+		System.out.println("\n\n\n");
+		return r;
+	}
 }

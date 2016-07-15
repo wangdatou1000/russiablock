@@ -1,7 +1,7 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
+* To change this template, choose Tools | Templates
+* and open the template in the editor.
+*/
 package games.russiablock;
 
 import java.awt.Color;
@@ -11,20 +11,47 @@ import java.awt.GridLayout;
 import javax.swing.JPanel;
 import javax.swing.border.LineBorder;
 
-/**该类主要负责构建游戏区的面板，并定义了游戏面板的�?些功能�??
+/**
+ * 该类主要负责构建游戏区的面板，并定义了游戏面板的�?些功能�??
  *
  * @author Administrator
  */
-public class gamedisplay extends Container {
+public class GameDisplay extends Container {
 
-    private final int lsu,  hsu;
-    private final int blocksize,  gamew,  gameh;
-    private Color blockbordercolor,  blockbackcolor,  blockmovingcolor,  blockendcolor;
+	private final int lsu, hsu;
+	private final int blocksize, gamew, gameh;
+	private Color blockbordercolor, blockbackcolor, blockmovingcolor, blockendcolor;
     private JPanel blocks[];
-    public gamemodel gmmodel;
+	public GameModel gmmodel;
+	private int oldVersion;
+	private Runnable logic = () -> {
+		if (oldVersion != gmmodel.getVersion()) {
+			for (int i = 0, j = gmmodel.gmarray.length; i < j; i++) {
+				if (gmmodel.gmarray[i] == gmmodel.BACKCOLOR) {
+					blocks[i].setBackground(blockbackcolor);
+				} else if (gmmodel.gmarray[i] == gmmodel.ENDCOLOR) {
+					blocks[i].setBackground(blockendcolor);
+				} else if (gmmodel.gmarray[i] == gmmodel.MOVINGCOLOR) {
+					blocks[i].setBackground(blockmovingcolor);
+				}
+			}
+			oldVersion = gmmodel.getVersion();
+			// System.out.println("the Thread-" + Thread.currentThread().getId()
+			// + " has modify,version=" + oldVersion);
+		} else {
+			// System.out.println("the Thread-" + Thread.currentThread().getId()
+			// + " not modify,version=" + oldVersion);
+		}
+		try {
+			Thread.sleep(20);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	};
+	public MyThreadV2 xia = new MyThreadV2(logic);
 
-    public gamedisplay(int hsu, int lsu, int blocksize,
-            Color blockbackcolor, Color blockbordercolor,
+	public GameDisplay(int hsu, int lsu, int blocksize, Color blockbackcolor, Color blockbordercolor,
             Color blockmovingcolor, Color blockendcolor) {
         this.lsu = lsu;
         this.hsu = hsu;
@@ -37,51 +64,9 @@ public class gamedisplay extends Container {
         gamew = lsu * blocksize;
         gameh = hsu * blocksize;
         creatgamepanel();
-        gmmodel = new gamemodel(hsu, lsu);
-    }
-
-    public int getlsu() {
-        return this.lsu;
-    }
-
-    public int gethsu() {
-        return this.hsu;
-    }
-
-    public int getblocksize() {
-        return this.blocksize;
-    }
-
-    public Color getblockendcolor() {
-        return this.blockendcolor;
-    }
-
-    public Color getblockbackcolor() {
-        return this.blockbackcolor;
-    }
-
-    public Color getblockbordercolor() {
-        return this.blockbordercolor;
-    }
-
-    public Color getblockmovingcolor() {
-        return this.blockmovingcolor;
-    }
-
-    public void setblockendcolor(Color blockendcolor) {
-        this.blockendcolor = blockendcolor;
-    }
-
-    public void setblockbackcolor(Color blockbackcolor) {
-        this.blockbackcolor = blockbackcolor;
-    }
-
-    public void setblockbordercolor(Color blockbordercolor) {
-        this.blockbordercolor = blockbordercolor;
-    }
-
-    public void setblockmovingcolor(Color blockmovingcolor) {
-        this.blockmovingcolor = blockmovingcolor;
+		this.gmmodel = new GameModel(hsu, lsu);
+		this.oldVersion = gmmodel.getVersion();
+		xia.start();
     }
 
     public void creatgamepanel() {
@@ -96,55 +81,5 @@ public class gamedisplay extends Container {
         }
         this.setVisible(true);
     }
-
-    public void displayall() {
-        for (int n = 0; n < hsu * lsu; n++) {
-            if (gmmodel.gmarray[n] == gmmodel.blockbackcolor) {
-                blocks[n].setBackground(blockbackcolor);
-            } else if (gmmodel.gmarray[n] == gmmodel.blockendcolor) {
-                blocks[n].setBackground(blockendcolor);
-            }
-        }
-    }
-
-    public void gamedisplay(blocks blk, Color backcolor, Color movingcolor, boolean is_two) {
-
-        this.getComponent(blk.b1).setBackground(backcolor);
-        this.getComponent(blk.b2).setBackground(backcolor);
-        this.getComponent(blk.b3).setBackground(backcolor);
-        this.getComponent(blk.b4).setBackground(backcolor);
-        if (is_two) {
-            this.getComponent(blk.w1).setBackground(movingcolor);
-            this.getComponent(blk.w2).setBackground(movingcolor);
-            this.getComponent(blk.w3).setBackground(movingcolor);
-            this.getComponent(blk.w4).setBackground(movingcolor);
-        }
-    }
-//==============================================================================
-//==============================================================================
-
-    public void go(blocks blk) {
-        gmmodel.change(blk, gmmodel.blockbackcolor, gmmodel.blockmovingcolor, true);
-        gamedisplay(blk, getblockbackcolor(), getblockmovingcolor(), true);
-        blk.go();
-    }
-
-    public void circumvolve(blocks blk) {
-        blk.circumvolvetest();
-        if (gmmodel.cancircumvolve(blk)) {
-            gmmodel.change(blk, gmmodel.blockbackcolor, gmmodel.blockmovingcolor, true);
-            gamedisplay(blk, getblockbackcolor(), getblockmovingcolor(), true);
-            blk.circumvolve();
-        }
-    }
-
-    public void cleanupgamepanel() {
-        gmmodel.cleanupgamepanel();
-        displayall();
-    }
-
-    public void endblocks(blocks blk) {
-        gmmodel.change(blk, gmmodel.blockendcolor, 0, false);
-        gamedisplay(blk, getblockendcolor(), null, false);
-    }
 }
+

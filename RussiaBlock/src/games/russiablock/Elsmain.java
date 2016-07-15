@@ -12,13 +12,12 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 
-public class elsmain extends JFrame {
+public class Elsmain extends JFrame {
 
 	private final int hsu = 20, lsu = 11, fkdx = 28, tisihsu = 4, tisilsu = 5;
 	private final int gameh = hsu * fkdx, gamew = lsu * fkdx;
 	// 设定方块区的横数和列�?,以及�?方块的宽(正方�?,也就是方块大�?)
-	private final Color clfkbk = Color.GRAY, clfk = Color.ORANGE, clfkdong = Color.BLUE,
-			fkdi = Color.DARK_GRAY;
+	private final Color clfkbk = Color.GRAY, clfk = Color.ORANGE, clfkdong = Color.BLUE, fkdi = Color.DARK_GRAY;
 	private final Color enmitycolor = Color.RED;
 	// 定义�?些颜�?
 	private int sleeptime = 500;
@@ -28,25 +27,31 @@ public class elsmain extends JFrame {
 	private JLabel n = new JLabel(next);
 	private JLabel computerscores = new JLabel("COMPUTER SCORES:" + 0);
 	private JButton kzi = new JButton();
-	private computer cm = new computer();
-	private autogame computergame, mygame;
-	private gamedisplay gm, gmnext, enmitygm;
 
-	public elsmain() {
+	private AutoGame computergame, mygame;
+	private GameDisplay gm, gmnext, enmitygm;
+	private ElsAI ai;
+	private ElsAIv2 aiv2;
+	/**
+	 * 该类为电脑玩俄罗斯方块的控制线程，它通过类elsai（相等于人的大脑�? 来获得方块的旋转和移动的相关参数�?
+	 *
+	 */
+
+	private MyThreadV2 cm = null;
+
+	public Elsmain() {
 		super("俄罗斯方块");
 		Container a = getContentPane();
 		a.setLayout(null);
 		a.setSize(gamew * 3 + fkdx * 2, gameh + fkdx * 2);
 
-		gm = new gamedisplay(hsu, lsu, fkdx, clfk, clfkbk, clfkdong, fkdi);
-		gm.setblockendcolor(fkdi);
+		gm = new GameDisplay(hsu, lsu, fkdx, clfk, clfkbk, clfkdong, fkdi);
 		gm.setLocation(a.getSize().width - gamew * 2 + fkdx * 3, a.getSize().height - gameh);
 
-		gmnext = new gamedisplay(tisihsu, tisilsu, fkdx, clfk, clfkbk, clfkdong, null);
+		gmnext = new GameDisplay(tisihsu, tisilsu, fkdx, clfk, clfkbk, clfkdong, null);
 		gmnext.setLocation(gm.getLocation().x + gm.getWidth() + fkdx * 2, gameh / 3);
 
-		enmitygm = new gamedisplay(hsu, lsu, fkdx, clfk, clfkbk, clfkdong, fkdi);
-		enmitygm.setblockendcolor(fkdi);
+		enmitygm = new GameDisplay(hsu, lsu, fkdx, clfk, clfkbk, clfkdong, fkdi);
 		enmitygm.setLocation(fkdx * 2, gm.getLocation().y);
 
 		n.setForeground(Color.blue);
@@ -82,8 +87,8 @@ public class elsmain extends JFrame {
 		setResizable(false);
 		setVisible(true);
 
-		computergame = new autogame(enmitygm, true, null);
-		mygame = new autogame(gm, false, gmnext);
+		computergame = new AutoGame(enmitygm.gmmodel, true, null);
+		mygame = new AutoGame(gm.gmmodel, false, gmnext.gmmodel);
 		computergame.sleeptime = sleeptime;
 		mygame.sleeptime = sleeptime;
 
@@ -91,12 +96,56 @@ public class elsmain extends JFrame {
 		mygame.xia.setSuspend(true);
 		computergame.xia.start();
 		computergame.xia.setSuspend(true);
+		aiv2 = new ElsAIv2(computergame.gm, computergame.getblk());
+		ai = new ElsAI(computergame);
+		cm = new MyThreadV2(getAILogic());
 		cm.start();
 		cm.setSuspend(true);
 	}
 
+	private Runnable getAILogic() {
+		return () -> {
+			Router r = null;
+			// System.out.println("computer running");
+			if (computergame.next) {
+				computerscores.setText(s2 + computergame.getscores());
+				aiv2.setBlocks(computergame.getblk());
+				r = aiv2.getRouter();
+				// ai.setBlocks(computergame.getblk());
+				// r = ai.getRouter();
+				// System.out.println("--");
+				try {
+					Thread.sleep(700);
+				} catch (Exception e) {
+				}
+				while (r != null && r.state != computergame.getblk().state) {
+					System.out.println(r.state + "--" + computergame.getblk().state);
+					computergame.circumvolve();
+					try {
+						Thread.sleep(20);
+					} catch (Exception e) {
+					}
+				}
+				computergame.go(r.x);
+				computergame.next = false;
+				try {
+					Thread.sleep(100);
+				} catch (Exception e) {
+				}
+			} else {
+				computergame.go(lsu);
+				try {
+					// Thread.sleep(100 + computergame.getscores() / 300);
+					Thread.sleep(100);
+				} catch (Exception e) {
+				}
+			}
+
+		};
+	}
+
 	public static void main(String[] args) {
-		elsmain xiaowei = new elsmain();
+		Elsmain xiaowei = new Elsmain();
 		xiaowei.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	}
 
@@ -173,45 +222,4 @@ public class elsmain extends JFrame {
 		return bt;
 	}
 
-	class computer extends MyThreadV2 {
-
-		/**
-		 * 该类为电脑玩俄罗斯方块的控制线程，它通过类elsai（相等于人的大脑�? 来获得方块的旋转和移动的相关参数�?
-		 *
-		 */
-		@Override
-		protected void runPersonelLogic() {
-			elsai ai = null;
-			router r = null;
-			if (computergame.next) {
-				computerscores.setText(s2 + computergame.getscores());
-				ai = new elsai(computergame);
-				r = ai.getrouter();
-				try {
-					sleep(700);
-				} catch (Exception e) {
-				}
-				while (r != null && r.state != computergame.getblk().state) {
-					computergame.circumvolve();
-					try {
-						sleep(200);
-					} catch (Exception e) {
-					}
-				}
-				computergame.go(r.x);
-				computergame.next = false;
-				try {
-					sleep(100);
-				} catch (Exception e) {
-				}
-			} else {
-				computergame.go(lsu);
-				try {
-					sleep(300 + computergame.getscores() / 300);
-				} catch (Exception e) {
-				}
-			}
-
-		}
-	}
 }

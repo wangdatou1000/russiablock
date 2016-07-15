@@ -2,11 +2,16 @@ package games.russiablock;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
-public abstract class MyThreadV2 extends Thread {
+public class MyThreadV2 extends Thread {
 
 	private volatile boolean suspend = false;
 	private ReentrantLock lock = new ReentrantLock();
 	private Condition condition = lock.newCondition();
+	private Runnable logic;
+
+	public MyThreadV2(Runnable f) {
+		logic = f;
+	}
 
 	public void setSuspend(boolean suspend) {
 		if (!suspend) {
@@ -38,22 +43,26 @@ public abstract class MyThreadV2 extends Thread {
 			} finally {
 				lock.unlock();
 			}
-			this.runPersonelLogic();
-		}	
+			logic.run();
+		}
 	}
 
-	protected abstract void runPersonelLogic();
 
 	public static void main(String[] args) throws Exception {
-		MyThreadV2 myThread = new MyThreadV2() {
-			protected void runPersonelLogic() {
-				System.out.println("myThread is runing");
+		Runnable logic = () -> {
+			System.out.println("myThread is runing");
+			try {
+				Thread.sleep(200);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 		};
+		MyThreadV2 myThread = new MyThreadV2(logic);
 		myThread.start();
-		Thread.sleep(200);
+		Thread.sleep(2000);
 		myThread.setSuspend(true);
-		System.out.println("\nmyThread1 has stopped");
+		System.out.println("myThread has stopped");
 		Thread.sleep(3000);
 		myThread.setSuspend(false);
 
