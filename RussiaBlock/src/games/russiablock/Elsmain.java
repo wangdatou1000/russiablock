@@ -31,7 +31,7 @@ public class Elsmain extends JFrame {
 	private AutoGame computergame, mygame;
 	private GameDisplay gm, gmnext, enmitygm;
 	private ElsAI ai;
-	private ElsAIv2 aiv2;
+	private ElsAIv3 aiv3;
 	/**
 	 * 该类为电脑玩俄罗斯方块的控制线程，它通过类elsai（相等于人的大脑�? 来获得方块的旋转和移动的相关参数�?
 	 *
@@ -96,7 +96,7 @@ public class Elsmain extends JFrame {
 		mygame.xia.setSuspend(true);
 		computergame.xia.start();
 		computergame.xia.setSuspend(true);
-		aiv2 = new ElsAIv2(computergame.gm, computergame.getblk());
+		aiv3 = new ElsAIv3(computergame.gm, computergame.getblk());
 		ai = new ElsAI(computergame);
 		cm = new MyThreadV2(getAILogic());
 		cm.start();
@@ -109,8 +109,8 @@ public class Elsmain extends JFrame {
 			// System.out.println("computer running");
 			if (computergame.next) {
 				computerscores.setText(s2 + computergame.getscores());
-				aiv2.setBlocks(computergame.getblk());
-				r = aiv2.getRouter();
+				aiv3.setBlocks(computergame.getblk());
+				r = aiv3.getRouter();
 				// ai.setBlocks(computergame.getblk());
 				// r = ai.getRouter();
 				// System.out.println("--");

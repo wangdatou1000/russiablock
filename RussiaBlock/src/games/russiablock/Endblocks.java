@@ -37,6 +37,22 @@ public class Endblocks {
 	private int C = 0;
 	private Map<Integer, Integer> deadQiMap = new HashMap<>();
 
+	/** V3 算法的属性 ********/
+	private int landingHeight = 0;
+	private int eliminateRows = 0;
+	private int boardRowTransitions = 0;
+	private int boardColTransitions = 0;
+	private int boardBuriedHoles = 0;
+	private int boardWells = 0;
+
+	/******* end ***************/
+	public int getEvaluateBlocks() {
+		int value = 0;
+		value = -1 * landingHeight + eliminateRows - boardRowTransitions - boardColTransitions - 3 * boardBuriedHoles
+				- boardWells;
+		return value;
+	}
+
 	public Endblocks(Blocks blk) {
 		this.blk = blk;
     }
@@ -123,6 +139,54 @@ public class Endblocks {
 
 	public List<Integer> getB() {
 		return B;
+	}
+
+	public int getLandingHeight() {
+		return landingHeight;
+	}
+
+	public void setLandingHeight(int landingHeight) {
+		this.landingHeight = landingHeight;
+	}
+
+	public int getEliminateRows() {
+		return eliminateRows;
+	}
+
+	public void setEliminateRows(int eliminateRows) {
+		this.eliminateRows = eliminateRows;
+	}
+
+	public int getBoardRowTransitions() {
+		return boardRowTransitions;
+	}
+
+	public void setBoardRowTransitions(int boardRowTransitions) {
+		this.boardRowTransitions = boardRowTransitions;
+	}
+
+	public int getBoardColTransitions() {
+		return boardColTransitions;
+	}
+
+	public void setBoardColTransitions(int boardColTransitions) {
+		this.boardColTransitions = boardColTransitions;
+	}
+
+	public int getBoardBuriedHoles() {
+		return boardBuriedHoles;
+	}
+
+	public void setBoardBuriedHoles(int boardBuriedHoles) {
+		this.boardBuriedHoles = boardBuriedHoles;
+	}
+
+	public int getBoardWells() {
+		return boardWells;
+	}
+
+	public void setBoardWells(int boardWells) {
+		this.boardWells = boardWells;
 	}
 
 	public void setB(List<Integer> b) {
