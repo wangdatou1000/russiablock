@@ -20,7 +20,7 @@ public class Elsmain extends JFrame {
 	private final Color clfkbk = Color.GRAY, clfk = Color.ORANGE, clfkdong = Color.BLUE, fkdi = Color.DARK_GRAY;
 	private final Color enmitycolor = Color.RED;
 	// 定义�?些颜�?
-	private int sleeptime = 500;
+	private int sleeptime = 100;
 	private int fensu = 0;
 	private String s1 = "YOUR SCORES:", s2 = "COMPUTER SCORES:", next = "Next";
 	private JLabel l1 = new JLabel(s1 + fensu);
@@ -67,8 +67,8 @@ public class Elsmain extends JFrame {
 
 		computerscores.setForeground(Color.RED);
 		computerscores.setFont(new Font(s2, Font.BOLD, 17));
-		computerscores.setLocation(enmitygm.getLocation().x + fkdx * 2, l1.getLocation().y);
-		computerscores.setSize(300, 100);
+		computerscores.setLocation(enmitygm.getLocation().x - fkdx, l1.getLocation().y);
+		computerscores.setSize(500, 100);
 
 		kzi = createbutton();
 		kzi.setSize(gmnext.getWidth() / 2, kzi.getHeight());
@@ -108,37 +108,31 @@ public class Elsmain extends JFrame {
 			Router r = null;
 			// System.out.println("computer running");
 			if (computergame.next) {
-				computerscores.setText(s2 + computergame.getscores());
+				computerscores
+						.setText(s2 + computergame.getscores() + " ELIMINATERows:" + computergame.getEliminateRows());
 				aiv3.setBlocks(computergame.getblk());
 				r = aiv3.getRouter();
 				// ai.setBlocks(computergame.getblk());
 				// r = ai.getRouter();
 				// System.out.println("--");
-				try {
-					Thread.sleep(700);
-				} catch (Exception e) {
-				}
+				/*
+				 * try { Thread.sleep(10); } catch (Exception e) { }
+				 */
 				while (r != null && r.state != computergame.getblk().state) {
-					System.out.println(r.state + "--" + computergame.getblk().state);
+					// System.out.println(r.state + "--" +
+					// computergame.getblk().state);
 					computergame.circumvolve();
-					try {
-						Thread.sleep(20);
-					} catch (Exception e) {
-					}
 				}
 				computergame.go(r.x);
 				computergame.next = false;
-				try {
-					Thread.sleep(100);
-				} catch (Exception e) {
-				}
+
 			} else {
 				computergame.go(lsu);
-				try {
-					// Thread.sleep(100 + computergame.getscores() / 300);
-					Thread.sleep(100);
-				} catch (Exception e) {
-				}
+				// try {
+				// // Thread.sleep(100 + computergame.getscores() / 300);
+				// Thread.sleep(10);
+				// } catch (Exception e) {
+				// }
 			}
 
 		};

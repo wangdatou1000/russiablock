@@ -48,8 +48,45 @@ public class Endblocks {
 	/******* end ***************/
 	public int getEvaluateBlocks() {
 		int value = 0;
-		value = -1 * landingHeight + eliminateRows - boardRowTransitions - boardColTransitions - 3 * boardBuriedHoles
-				- boardWells;
+		/*
+		 * scores:1582300----Rows:13636 scores:413700----Rows:3550
+		 * scores:2034500----Rows:17483 scores:2301400----Rows:19826
+		 * scores:2527100----Rows:21709 scores:107000----Rows:914
+		 * scores:831100----Rows:7145 scores:6378700----Rows:54885
+		 * scores:4643200----Rows:40057 scores:839700----Rows:7225
+		 * scores:1936100----Rows:16735 scores:1538900----Rows:13242
+		 * scores:609300----Rows:5277 scores:2916200----Rows:25140
+		 */
+		int value1 = (int) (-1 * landingHeight + eliminateRows - boardRowTransitions - boardColTransitions
+				- 4 * boardBuriedHoles - boardWells);
+
+		// 1 -4.500158825082766
+		// 2 3.4181268101392694
+		// 3 -3.2178882868487753
+		// 4 -9.348695305445199
+		// 5 -7.899265427351652
+		// 6 -3.3855972247263626
+		/*
+		 * scores:466000----Rows:3810 scores:2873900----Rows:23276
+		 * scores:9628000----Rows:78305 scores:6714200----Rows:54456
+		 * scores:7875400----Rows:63952 scores:2341100----Rows:18999
+		 * scores:3718700----Rows:30188 scores:96600----Rows:799
+		 * scores:14745000----Rows:119524 scores:4047200----Rows:32852
+		 * +scores:12868200----Rows:104316 create ok!!
+		 * scores:6767800----Rows:54906 scores:6301400----Rows:51196
+		 * scores:2053500----Rows:16687 scores:3911200----Rows:31761
+		 * scores:1195400----Rows:9687 scores:12204700----Rows:99041
+		 * scores:0----Rows:0 scores:2615800----Rows:21242
+		 * scores:4791900----Rows:38847 create ok!! scores:5257200----Rows:42654
+		 * scores:1320700----Rows:10709
+		 */
+		value = (int) (-4.500158825082766 * landingHeight +
+		  3.4181268101392694 * eliminateRows - 3.2178882868487753 *
+						boardRowTransitions
+				- 9.348695305445199 * boardColTransitions -
+		  7.899265427351652 * boardBuriedHoles - 3.3855972247263626 *
+		  boardWells);
+		 
 		return value;
 	}
 

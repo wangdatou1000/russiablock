@@ -84,6 +84,8 @@ public class GameModel {
 	}// 判断能不能旋�?.
 
 	public boolean cango(int p, Blocks blk) {
+		if (blk == null)
+			return false;
         blk.gotest(p);
         if (!is_overborderline(blk)) {
 			if (gmarray[blk.w1] == ENDCOLOR || gmarray[blk.w2] == ENDCOLOR || gmarray[blk.w3] == ENDCOLOR

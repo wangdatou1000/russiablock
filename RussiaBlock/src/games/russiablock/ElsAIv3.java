@@ -142,7 +142,7 @@ public class ElsAIv3 {
 				break;
 			}
 		}
-		return eliminateRow * (eliminateBlock + 1);
+		return eliminateRow * eliminateBlock;
 	}
 
 	private int getBoardRowTransitions(Blocks blk) {
@@ -208,7 +208,7 @@ public class ElsAIv3 {
 		for (int n = 10; n >= 0; n--) {
 			for (int j = n; j < ALLBLOCKS; j += COLUMNS) {
 				if (gm.gmarray[j] == gm.BACKCOLOR && j != blk.b1 && j != blk.b2 && j != blk.b3 && j != blk.b4
-						&& isEndBlock == -1) {
+						&& isEndBlock == -1 && isEndBlock == -1) {
 					continue;
 				}
 				if (gm.gmarray[j] == gm.ENDCOLOR || j == blk.b1 || j == blk.b2 || j == blk.b3 || j == blk.b4) {
@@ -217,6 +217,7 @@ public class ElsAIv3 {
 				}
 				if (gm.gmarray[j] == gm.BACKCOLOR && isEndBlock == 0) {
 					boardBuriedHoles++;
+					isEndBlock = 1;
 				}
 			}
 			isEndBlock = -1;
@@ -247,10 +248,14 @@ public class ElsAIv3 {
 					}
 				} else if(boardWells!=0) {
 					allWells += ((1 + boardWells) * boardWells) / 2;
+					boardWells = 0;
 				}
 
 			}
-			boardWells = 0;
+			if (boardWells != 0) {
+				allWells += ((1 + boardWells) * boardWells) / 2;
+				boardWells = 0;
+			}
 		}
 
 		return allWells;
@@ -276,7 +281,7 @@ public class ElsAIv3 {
 			blk_state.circumvolve();
 			circumvolveTimes++;
 		}
-		int movieTimes = blocks.blk.b1 % COLUMNS - orblk.b1 % COLUMNS;
+		int movieTimes = Math.abs(blocks.blk.b1 % COLUMNS - orblk.b1 % COLUMNS);
 		if (blk_state.b1 % COLUMNS < COLUMNS / 2) {
 			return 100 * movieTimes + 10 + circumvolveTimes;
 		} else {
@@ -354,10 +359,12 @@ public class ElsAIv3 {
 		boolean isend = true;
 		while (isend) {
 			int end = getBeginScanPoint();
-			System.out.println("end:" + end + "\tendpoint:" + endpoint);
+			// System.out.println("end:" + end + "\tendpoint:" + endpoint);
 			setBlk(blk, end);// 将blk移动到可以开始搜索点
-			System.out.println("kinds:" + blk.kinds + "\t" + blk.b1 + "=" + blk.b1 % COLUMNS + "-" + blk.b2 % COLUMNS
-					+ "--" + blk.b3 % COLUMNS + "--" + blk.b4 % COLUMNS + "state:" + blk.state);
+			// System.out.println("kinds:" + blk.kinds + "\t" + blk.b1 + "=" +
+			// blk.b1 % COLUMNS + "-" + blk.b2 % COLUMNS
+			// + "--" + blk.b3 % COLUMNS + "--" + blk.b4 % COLUMNS + "state:" +
+			// blk.state);
 			while (end > endpoint - COLUMNS - 1 && end > 0) {
 				/* 如果悬空则不计算，跳过 */
 				if (!gm.cango(COLUMNS, blk)) {
@@ -369,17 +376,25 @@ public class ElsAIv3 {
 						} else {
 							tempendblock = getOneOkBlock(blk);
 							endblock = compareBlocks(endblock, tempendblock);
-							System.out.println("state:" + blk.state + "\ttemp:" + tempendblock.getC() + "\t"
-									+ tempendblock.getLandingHeight() + "\t" + tempendblock.getEliminateRows() + "\t"
-									+ tempendblock.getBoardColTransitions() + "\t"
-									+ tempendblock.getBoardRowTransitions() + "\t" + tempendblock.getBoardWells() + "\t"
-									+ tempendblock.getBoardBuriedHoles() + "\tok--state:" + endblock.blk.state + "\t"
-									+ endblock.getLandingHeight() + "\t" + endblock.getEliminateRows() + "\t"
-									+ endblock.getBoardColTransitions() + "\t" + endblock.getBoardRowTransitions()
-									+ "\t" + endblock.getBoardWells() + "\t" + endblock.getBoardBuriedHoles()
-									+ "\tendpoint:" + endpoint + "-" + end + "--"
-									+ endblock.blk.b1 + "===" + blk.b1 % COLUMNS + "-" + blk.b2 % COLUMNS + "--"
-									+ blk.b3 % COLUMNS + "--" + blk.b4 % COLUMNS);
+							// System.out.println("state:" + blk.state +
+							// "\ttemp:" + tempendblock.getC() + "\t"
+							// + tempendblock.getLandingHeight() + "\t" +
+							// tempendblock.getEliminateRows() + "\t"
+							// + tempendblock.getBoardColTransitions() + "\t"
+							// + tempendblock.getBoardRowTransitions() + "\t" +
+							// tempendblock.getBoardWells() + "\t"
+							// + tempendblock.getBoardBuriedHoles() +
+							// "\tok--state:" + endblock.blk.state + "\t"
+							// + endblock.getLandingHeight() + "\t" +
+							// endblock.getEliminateRows() + "\t"
+							// + endblock.getBoardColTransitions() + "\t" +
+							// endblock.getBoardRowTransitions()
+							// + "\t" + endblock.getBoardWells() + "\t" +
+							// endblock.getBoardBuriedHoles()
+							// + "\tendpoint:" + endpoint + "-" + end + "--"
+							// + endblock.blk.b1 + "===" + blk.b1 % COLUMNS +
+							// "-" + blk.b2 % COLUMNS + "--"
+							// + blk.b3 % COLUMNS + "--" + blk.b4 % COLUMNS);
 						}
 					}
 				}
@@ -406,13 +421,15 @@ public class ElsAIv3 {
 			r.state = okblk.blk.state;
 			r.x = okblk.blk.b1 % COLUMNS - orblk.b1 % COLUMNS;
 
-			System.out.println("r.kinds:" + okblk.blk.kinds + "  r.state=" + r.state + "\t" + r.x + "\t" + okblk.blk.b1
-					+ "=====" + orblk.b1 + "\t" + okblk.blk.b1 % COLUMNS + "======" + orblk.b1 % COLUMNS);
+			// System.out.println("r.kinds:" + okblk.blk.kinds + " r.state=" +
+			// r.state + "\t" + r.x + "\t" + okblk.blk.b1
+			// + "=====" + orblk.b1 + "\t" + okblk.blk.b1 % COLUMNS + "======" +
+			// orblk.b1 % COLUMNS);
 		} else {
 			System.out.println("okblk is null,blk.kinds=" + orblk.kinds + "," + orblk.b1 + "-" + orblk.b2 + "-"
 					+ orblk.b3 + "-" + orblk.b4);
 		}
-		System.out.println("\n\n\n");
+		/// System.out.println("\n\n\n");
 		return r;
 	}
 }
