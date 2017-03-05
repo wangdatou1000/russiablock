@@ -82,6 +82,8 @@ public class Elsmain extends JFrame {
 		a.add(enmitygm);
 		a.add(computerscores);
 
+
+		
 		setLocation(100, 80);
 		setSize(a.getSize().width + fkdx, a.getSize().height + fkdx);
 		setResizable(false);
@@ -152,7 +154,7 @@ public class Elsmain extends JFrame {
 			computergame.xia.setSuspend(false);
 			cm.setSuspend(false);
 			kzi.setText("暂停");
-		} else if (e.getActionCommand() == "暂停") {
+		} else if (e.getActionCommand().equals("暂停")) {
 			kzi.setText("继续");
 			try {
 				mygame.xia.setSuspend(true);
@@ -161,7 +163,7 @@ public class Elsmain extends JFrame {
 			} catch (Exception exception) {
 				System.out.println("ddddddddddd");
 			}
-		} else if (e.getActionCommand() == "继续") {
+		} else if (e.getActionCommand().equals("继续")) {
 			kzi.setText("暂停");
 			mygame.xia.setSuspend(false);
 			computergame.xia.setSuspend(false);
