@@ -4,6 +4,7 @@
  */
 package games.russiablock;
 
+import java.io.Serializable;
 import java.util.Arrays;
 
 /**方块类主要定义了方块本身的一些行为和属�?��??
@@ -13,7 +14,7 @@ import java.util.Arrays;
  *
  * @author Administrator
  */
-public class Blocks {
+public class Blocks implements Serializable {
 
     public volatile int b1, b2, b3, b4;
     public volatile int w1, w2, w3, w4;

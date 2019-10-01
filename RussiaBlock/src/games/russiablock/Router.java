@@ -5,11 +5,13 @@
 
 package games.russiablock;
 
+import java.io.Serializable;
+
 /**
  *
  * @author Administrator
  */
-public class Router {
+public class Router implements Serializable {
 public int x;
 public int y;
 public int state;

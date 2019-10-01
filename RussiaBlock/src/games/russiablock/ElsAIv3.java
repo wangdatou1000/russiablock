@@ -23,8 +23,6 @@ public class ElsAIv3 {
 
 	public ElsAIv3(GameModel gmModel, Blocks blk) {
 		this.gm = gmModel;
-		System.out.println(gm.gmarray.length);
-		// orblk.createblocks();
 		COLUMNS = gm.getColumnNum();
 		ROWS = gm.getRowNum();
 		ALLBLOCKS = COLUMNS * ROWS;
@@ -420,16 +418,10 @@ public class ElsAIv3 {
 		if (okblk != null) {
 			r.state = okblk.blk.state;
 			r.x = okblk.blk.b1 % COLUMNS - orblk.b1 % COLUMNS;
-
-			// System.out.println("r.kinds:" + okblk.blk.kinds + " r.state=" +
-			// r.state + "\t" + r.x + "\t" + okblk.blk.b1
-			// + "=====" + orblk.b1 + "\t" + okblk.blk.b1 % COLUMNS + "======" +
-			// orblk.b1 % COLUMNS);
 		} else {
 			System.out.println("okblk is null,blk.kinds=" + orblk.kinds + "," + orblk.b1 + "-" + orblk.b2 + "-"
 					+ orblk.b3 + "-" + orblk.b4);
 		}
-		/// System.out.println("\n\n\n");
 		return r;
 	}
 }

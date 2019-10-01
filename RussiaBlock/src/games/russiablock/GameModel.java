@@ -4,12 +4,14 @@
  */
 package games.russiablock;
 
+import java.io.Serializable;
+
 /**
  *
  * @author Administrator
  */
-public class GameModel {
-
+public class GameModel implements Serializable {
+    private static final long serialVersionUID = 4923081703118853877L;
 	private int lsu, hsu;
 	public volatile int gmarray[];
 	public final int ENDCOLOR = 3;
